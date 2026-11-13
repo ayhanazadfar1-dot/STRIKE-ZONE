@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">STRIKE ZONE</string>
+    <string name="title_activity_main">STRIKE ZONE</string>
+    <string name="package_name">com.strikezone.game</string>
+    <string name="custom_url_scheme">com.strikezone.game</string>
+</resources>
