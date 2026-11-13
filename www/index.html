@@ -21,11 +21,65 @@ canvas{display:block}
 #restart{position:fixed;display:none;inset:0;z-index:10;background:#000c;align-items:center;justify-content:center;flex-direction:column;text-align:center}
 #restart button{padding:14px 30px;background:#00bce8;color:#001018;border:0;border-radius:9px;font-weight:bold;font-size:18px}
 #hint{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);font-size:11px;color:#aaa;white-space:nowrap}
+
+#mainMenu,#settingsPanel,#onlinePanel{
+ position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;
+ background:linear-gradient(135deg,rgba(3,10,18,.97),rgba(8,35,52,.96));
+ padding:22px;text-align:center
+}
+.menu-card{width:min(430px,100%);padding:28px 22px;border:1px solid #36cfff66;border-radius:20px;
+ background:linear-gradient(160deg,#142838f2,#09131df5);box-shadow:0 0 35px #00bfff25}
+.menu-logo{font-size:clamp(30px,8vw,48px);font-weight:1000;letter-spacing:4px;color:#39d8ff;
+ text-shadow:0 0 18px #00bfff;margin:4px 0}
+.menu-sub{color:#9db9c8;letter-spacing:3px;font-size:11px;margin-bottom:25px}
+.menu-btn{width:100%;padding:15px;margin:7px 0;border:1px solid #4bdcff88;border-radius:10px;
+ background:linear-gradient(90deg,#123b52,#14516b);color:#fff;font-weight:900;font-size:16px;letter-spacing:1px}
+.menu-btn.secondary{background:#18232d;border-color:#607989}
+.menu-btn:active{transform:scale(.98);filter:brightness(1.25)}
+.menu-note{font-size:11px;color:#8ba5b4;margin-top:16px}
+.panel-title{color:#39d8ff;letter-spacing:3px;font-size:24px;margin:0 0 20px}
+.setting-row{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;
+ padding:13px 2px;border-bottom:1px solid #ffffff20;color:#e9f6ff}
+.setting-row input[type=range]{width:48%;accent-color:#39d8ff}
+.setting-row select{background:#142b3a;color:white;border:1px solid #39d8ff;padding:8px;border-radius:7px}
+#hud,#cross,#controls,#hint{display:none}
+
 </style>
 </head>
 <body>
+
+<div id="mainMenu">
+ <div class="menu-card">
+  <div class="menu-logo">STRIKE ZONE</div>
+  <div class="menu-sub">TACTICAL COMBAT</div>
+  <button class="menu-btn" id="offlineBtn">OFFLINE</button>
+  <button class="menu-btn" id="onlineBtn">ONLINE</button>
+  <button class="menu-btn secondary" id="settingsBtn">SETTINGS</button>
+  <div class="menu-note">MOBILE EDITION · VERSION 3</div>
+ </div>
+</div>
+<div id="onlinePanel" style="display:none">
+ <div class="menu-card">
+  <div class="panel-title">ONLINE</div>
+  <div style="font-size:27px;font-weight:900;color:#ffd166;margin:22px 0">COMING SOON...</div>
+  <p style="color:#a9c2d0;line-height:1.7">Play with friends using a room code or an invite link.<br>Multiplayer is not available yet.</p>
+  <button class="menu-btn secondary" id="onlineBack">BACK</button>
+ </div>
+</div>
+<div id="settingsPanel" style="display:none">
+ <div class="menu-card">
+  <div class="panel-title">SETTINGS</div>
+  <div class="setting-row"><label for="sensitivity">Aim sensitivity</label><input id="sensitivity" type="range" min="1" max="15" value="4"><span id="sensValue">4</span></div>
+  <div class="setting-row"><label for="quality">Graphics quality</label><select id="quality"><option value="low">LOW</option><option value="high" selected>HIGH</option></select></div>
+  <div class="setting-row"><label for="crossToggle">Show crosshair</label><input id="crossToggle" type="checkbox" checked></div>
+  <div class="setting-row"><label for="friendlyFire">Friendly Fire</label><input id="friendlyFire" type="checkbox"></div>
+  <button class="menu-btn secondary" id="settingsBack">BACK</button>
+ </div>
+</div>
+
 <div id="title">STRIKE ZONE</div>
 <div id="hud">
+<div>TEAM: <span style="color:#39d8ff">BLUE</span> vs <span style="color:#ff6666">RED</span> | ALLIES: <span id="allyCount">3</span></div>
 <div>SCORE: <span id="score">0</span></div>
 <div>WAVE: <span id="wave">1</span></div>
 <div>HEALTH</div>
@@ -59,6 +113,7 @@ const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled = true;
+let graphicsQuality = 'high';
 document.body.appendChild(renderer.domElement);
 
 scene.add(new THREE.HemisphereLight(0xffffff,0x334455,2));
@@ -113,52 +168,61 @@ let yaw=0,pitch=0;
 let score=0,health=100,wave=1;
 let gameOver=false;
 let enemies=[];
+let allies=[];
 let lastShot=0;
+let friendlyFire=false;
 let moveX=0,moveY=0;
 let dragging=false,lastX=0,lastY=0;
+let aimSensitivity=0.004;
 
-function makeEnemy(){
-const group=new THREE.Group();
-const body=new THREE.Mesh(
-new THREE.BoxGeometry(.8,1.1,.55),
-new THREE.MeshStandardMaterial({color:0xb52e30})
-);
-body.position.y=.95;
-body.castShadow=true;
-group.add(body);
 
-const head=new THREE.Mesh(
-new THREE.SphereGeometry(.34,12,12),
-new THREE.MeshStandardMaterial({color:0xd6aa83})
-);
-head.position.y=1.75;
-head.castShadow=true;
-group.add(head);
-
-const eyeMat=new THREE.MeshBasicMaterial({color:0xff3333});
-for(let x of [-.12,.12]){
-const eye=new THREE.Mesh(new THREE.SphereGeometry(.045,8,8),eyeMat);
-eye.position.set(x,1.8,.3);
-group.add(eye);
+function makeBot(team){
+ const group=new THREE.Group();
+ const color=team==='blue'?0x168dff:0xb52e30;
+ const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.1,.55),new THREE.MeshStandardMaterial({color}));
+ body.position.y=.95; body.castShadow=true; group.add(body);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.34,12,12),new THREE.MeshStandardMaterial({color:0xd6aa83}));
+ head.position.y=1.75; head.castShadow=true; group.add(head);
+ const eyeMat=new THREE.MeshBasicMaterial({color:team==='blue'?0x8be7ff:0xff3333});
+ for(const x of [-.12,.12]){
+  const eye=new THREE.Mesh(new THREE.SphereGeometry(.045,8,8),eyeMat);
+  eye.position.set(x,1.8,.3); group.add(eye);
+ }
+ let x,z;
+ if(team==='blue'){x=(Math.random()-.5)*5;z=4+Math.random()*3;}
+ else {do{x=(Math.random()-.5)*36;z=(Math.random()-.5)*36;}while(Math.hypot(x,z)<10);}
+ group.position.set(x,0,z); scene.add(group);
+ const bot={group,hp:3,speed:team==='blue'?1.65:1.2+wave*.12,team,cooldown:Math.random()*1.2};
+ if(team==='blue')allies.push(bot); else enemies.push(bot);
 }
-
-let x,z;
-do{
-x=(Math.random()-.5)*36;
-z=(Math.random()-.5)*36;
-}while(Math.hypot(x,z)<10);
-
-group.position.set(x,0,z);
-scene.add(group);
-enemies.push({group,hp:2,speed:1.2+wave*.12});
+function makeEnemy(){makeBot('red');}
+function makeAlly(){makeBot('blue');}
+function removeBot(bot){
+ scene.remove(bot.group);
+ if(bot.team==='blue')allies=allies.filter(b=>b!==bot);
+ else enemies=enemies.filter(b=>b!==bot);
 }
-
+function damageBot(bot,amount=1){
+ bot.hp-=amount;
+ if(bot.hp<=0){
+  removeBot(bot);
+  if(bot.team==='red'){
+   score+=100; updateHUD();
+   if(enemies.length===0){wave++;spawnWave();}
+  }
+  updateTeamHUD();
+ }
+}
+function updateTeamHUD(){
+ const el=document.getElementById('allyCount');
+ if(el)el.textContent=allies.length;
+}
 function spawnWave(){
 for(let i=0;i<Math.min(3+wave,12);i++)makeEnemy();
+if(allies.length===0){for(let i=0;i<3;i++)makeAlly();}
 document.getElementById('wave').textContent=wave;
+updateTeamHUD();
 }
-spawnWave();
-
 function updateHUD(){
 document.getElementById('score').textContent=score;
 document.getElementById('health').style.width=health+'%';
@@ -193,17 +257,12 @@ ray.set(camera.position,direction);
 
 let best=null;
 let bestDistance=Infinity;
-
-for(const e of enemies){
-const hits=ray.intersectObjects(e.group.children,false);
-if(hits.length && hits[0].distance<bestDistance){
-best=e;
-bestDistance=hits[0].distance;
+const possibleTargets=friendlyFire?[...enemies,...allies]:enemies;
+for(const bot of possibleTargets){
+ const hits=ray.intersectObjects(bot.group.children,false);
+ if(hits.length && hits[0].distance<bestDistance){best=bot;bestDistance=hits[0].distance;}
 }
-}
-
-let targetDistance=best && bestDistance<45
-? bestDistance : 35;
+let targetDistance=best && bestDistance<45?bestDistance:35;
 
 const target=start.clone().add(
 direction.clone().multiplyScalar(targetDistance)
@@ -232,21 +291,7 @@ bullet.material.dispose();
 
 animateBullet();
 
-if(best && bestDistance<45){
-best.hp--;
-
-if(best.hp<=0){
-scene.remove(best.group);
-enemies=enemies.filter(e=>e!==best);
-score+=100;
-updateHUD();
-
-if(enemies.length===0){
-wave++;
-spawnWave();
-}
-}
-}
+if(best && bestDistance<45)damageBot(best,1);
 }
 
 
@@ -305,8 +350,8 @@ renderer.domElement.addEventListener('pointermove',e=>{
 if(!dragging)return;
 const dx=e.clientX-lastX;
 const dy=e.clientY-lastY;
-yaw-=dx*.004;
-pitch-=dy*.004;
+yaw-=dx*aimSensitivity;
+pitch-=dy*aimSensitivity;
 pitch=Math.max(-1.25,Math.min(1.25,pitch));
 lastX=e.clientX;
 lastY=e.clientY;
@@ -314,14 +359,61 @@ lastY=e.clientY;
 renderer.domElement.addEventListener('pointerup',()=>dragging=false);
 renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
 
+
 addEventListener('contextmenu',e=>e.preventDefault());
+
+const mainMenu=document.getElementById('mainMenu');
+const settingsPanel=document.getElementById('settingsPanel');
+const onlinePanel=document.getElementById('onlinePanel');
+let gameStarted=false;
+
+document.getElementById('offlineBtn').addEventListener('click',()=>{
+ gameStarted=true;
+ mainMenu.style.display='none';
+ document.getElementById('hud').style.display='block';
+ document.getElementById('cross').style.display=document.getElementById('crossToggle').checked?'block':'none';
+ document.getElementById('controls').style.display='block';
+ document.getElementById('hint').style.display='block';
+ spawnWave();
+});
+
+document.getElementById('onlineBtn').addEventListener('click',()=>{
+ onlinePanel.style.display='flex';
+});
+document.getElementById('onlineBack').addEventListener('click',()=>{
+ onlinePanel.style.display='none';
+});
+document.getElementById('settingsBtn').addEventListener('click',()=>{
+ settingsPanel.style.display='flex';
+});
+document.getElementById('settingsBack').addEventListener('click',()=>{
+ settingsPanel.style.display='none';
+});
+
+const sensitivityInput=document.getElementById('sensitivity');
+sensitivityInput.addEventListener('input',()=>{
+ aimSensitivity=Number(sensitivityInput.value)*0.001;
+ document.getElementById('sensValue').textContent=sensitivityInput.value;
+});
+document.getElementById('quality').addEventListener('change',e=>{
+ graphicsQuality=e.target.value;
+ renderer.setPixelRatio(Math.min(devicePixelRatio,graphicsQuality==='high'?2:1));
+ renderer.shadowMap.enabled=graphicsQuality==='high';
+});
+document.getElementById('crossToggle').addEventListener('change',e=>{
+ if(gameStarted) document.getElementById('cross').style.display=e.target.checked?'block':'none';
+});
+document.getElementById('friendlyFire').addEventListener('change',e=>{
+ friendlyFire=e.target.checked;
+});
+
 
 const clock=new THREE.Clock();
 function animate(){
 requestAnimationFrame(animate);
 const dt=Math.min(clock.getDelta(),.05);
 
-if(!gameOver){
+if(!gameOver && gameStarted){
 camera.rotation.set(pitch,yaw,0);
 
 const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
@@ -333,25 +425,52 @@ camera.position.addScaledVector(right,moveX*5*dt);
 camera.position.x=Math.max(-21,Math.min(21,camera.position.x));
 camera.position.z=Math.max(-20,Math.min(20,camera.position.z));
 
-for(const e of enemies){
-const dx=camera.position.x-e.group.position.x;
-const dz=camera.position.z-e.group.position.z;
-const dist=Math.hypot(dx,dz);
-
-if(dist>1.4){
-e.group.position.x+=dx/dist*e.speed*dt;
-e.group.position.z+=dz/dist*e.speed*dt;
-e.group.rotation.y=Math.atan2(dx,dz);
-}else{
-health-=18*dt;
-health=Math.max(0,health);
-updateHUD();
-if(health<=0)endGame();
+// Blue allies follow the player and engage nearby red bots.
+for(const ally of [...allies]){
+ const px=camera.position.x-ally.group.position.x,pz=camera.position.z-ally.group.position.z;
+ const pd=Math.hypot(px,pz);
+ if(pd>3.2){ally.group.position.x+=px/pd*ally.speed*dt;ally.group.position.z+=pz/pd*ally.speed*dt;}
+ ally.cooldown-=dt;
+ let target=null,nearest=18;
+ for(const enemy of enemies){
+  const d=Math.hypot(enemy.group.position.x-ally.group.position.x,enemy.group.position.z-ally.group.position.z);
+  if(d<nearest){nearest=d;target=enemy;}
+ }
+ if(target){
+  const dx=target.group.position.x-ally.group.position.x,dz=target.group.position.z-ally.group.position.z;
+  ally.group.rotation.y=Math.atan2(dx,dz);
+  if(ally.cooldown<=0){damageBot(target,1);ally.cooldown=1.15;}
+ }
 }
+// Red bots pursue the closest blue target.
+for(const enemy of [...enemies]){
+ let targetPlayer=true,tx=camera.position.x,tz=camera.position.z;
+ let nearest=Math.hypot(tx-enemy.group.position.x,tz-enemy.group.position.z);
+ for(const ally of allies){
+  const d=Math.hypot(ally.group.position.x-enemy.group.position.x,ally.group.position.z-enemy.group.position.z);
+  if(d<nearest){nearest=d;tx=ally.group.position.x;tz=ally.group.position.z;targetPlayer=false;}
+ }
+ const dx=tx-enemy.group.position.x,dz=tz-enemy.group.position.z;
+ if(nearest>1.5){
+  enemy.group.position.x+=dx/nearest*enemy.speed*dt;
+  enemy.group.position.z+=dz/nearest*enemy.speed*dt;
+  enemy.group.rotation.y=Math.atan2(dx,dz);
+ }else{
+  enemy.cooldown-=dt;
+  if(enemy.cooldown<=0){
+   if(targetPlayer){health=Math.max(0,health-8);updateHUD();if(health<=0)endGame();}
+   else if(allies.length){
+    let nearestAlly=allies[0],d0=Infinity;
+    for(const a of allies){const d=Math.hypot(a.group.position.x-enemy.group.position.x,a.group.position.z-enemy.group.position.z);if(d<d0){d0=d;nearestAlly=a;}}
+    damageBot(nearestAlly,1);
+   }
+   enemy.cooldown=1.0;
+  }
+ }
 }
 }
 renderer.render(scene,camera);
-}9
+}
 animate();
 
 addEventListener('resize',()=>{
