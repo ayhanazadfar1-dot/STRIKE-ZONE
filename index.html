@@ -7,7 +7,10 @@
 <title>STRIKE ZONE</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;background:#080d13;color:white;font-family:Arial,sans-serif;touch-action:none}
+body{margin:0;overflow:hidden;background:#080d13;color:white;font-family:Arial,sans-serif;touch-action:none;overscroll-behavior:none}
+.menu-card{max-height:92dvh;overflow:auto}
+@media(orientation:portrait){body.game-active #rotateNotice{display:flex}}
+#rotateNotice{display:none;position:fixed;inset:0;z-index:50;background:#07111b;color:#fff;align-items:center;justify-content:center;text-align:center;font-size:20px;padding:24px}
 canvas{display:block}
 #hud{position:fixed;top:12px;left:12px;z-index:5;font-weight:bold;text-shadow:0 2px 5px black;line-height:1.8}
 #healthbar{width:145px;height:12px;background:#444;border:1px solid white}
@@ -55,15 +58,28 @@ canvas{display:block}
   <button class="menu-btn" id="offlineBtn">OFFLINE</button>
   <button class="menu-btn" id="onlineBtn">ONLINE</button>
   <button class="menu-btn secondary" id="settingsBtn">SETTINGS</button>
-  <div class="menu-note">MOBILE EDITION · VERSION 4</div>
+  <div class="menu-note">MOBILE EDITION · VERSION 5</div>
  </div>
 </div>
 <div id="onlinePanel" style="display:none">
  <div class="menu-card">
-  <div class="panel-title">ONLINE</div>
-  <div style="font-size:27px;font-weight:900;color:#ffd166;margin:22px 0">COMING SOON...</div>
-  <p style="color:#a9c2d0;line-height:1.7">Private rooms and friend invites are planned.<br>A multiplayer server is still required, so online matches are not active yet.</p>
+  <div class="panel-title">ONLINE MODE</div>
+  <div style="font-size:24px;font-weight:900;color:#ffd166;margin:18px 0">SERVER COMING SOON</div>
+  <p style="color:#a9c2d0;line-height:1.7">You can enter the map and team setup now, but this is a local practice match. Real friend connections need a multiplayer server.</p>
+  <button class="menu-btn" id="onlineContinue">CONTINUE TO SETUP</button>
   <button class="menu-btn secondary" id="onlineBack">BACK</button>
+ </div>
+</div>
+<div id="setupPanel" style="display:none">
+ <div class="menu-card">
+  <div class="panel-title">MATCH SETUP</div><p id="modeNote" style="font-size:12px;color:#9db9c8">OFFLINE PRACTICE</p>
+  <div class="setting-row"><label for="setupMap">Choose map</label><select id="setupMap"><option value="training">Training Yard</option><option value="desert">Desert Base</option><option value="forest">Forest Camp</option></select></div>
+  <div class="setting-row"><label for="playerTeam">Choose your team</label><select id="playerTeam"><option value="blue">BLUE TEAM</option><option value="red">RED TEAM</option></select></div>
+  <div class="setting-row"><label for="setupAllies">Your team bots</label><select id="setupAllies"><option>0</option><option>1</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option></select></div>
+  <div class="setting-row"><label for="setupEnemies">Opposing bots</label><select id="setupEnemies"><option>1</option><option>2</option><option selected>4</option><option>5</option><option>6</option><option>8</option><option>10</option><option>12</option></select></div>
+  <button class="menu-btn" id="setupSettings">MATCH SETTINGS</button>
+  <button class="menu-btn" id="startMatch">START MATCH</button>
+  <button class="menu-btn secondary" id="setupBack">BACK</button>
  </div>
 </div>
 <div id="settingsPanel" style="display:none">
@@ -73,6 +89,8 @@ canvas{display:block}
   <div class="setting-row"><label for="quality">Graphics quality</label><select id="quality"><option value="low">LOW</option><option value="high" selected>HIGH</option></select></div>
   <div class="setting-row"><label for="crossToggle">Show crosshair</label><input id="crossToggle" type="checkbox" checked></div>
   <div class="setting-row"><label for="friendlyFire">Friendly Fire</label><input id="friendlyFire" type="checkbox"></div>
+  <div class="setting-row"><label for="musicToggle">Background music</label><input id="musicToggle" type="checkbox" checked></div>
+  <div class="setting-row"><label for="sfxToggle">Sound effects</label><input id="sfxToggle" type="checkbox" checked></div>
   <div class="setting-row"><label for="allyAmount">Blue team bots</label><select id="allyAmount"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></div>
   <div class="setting-row"><label for="enemyAmount">Red team bots</label><select id="enemyAmount"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>8</option><option>10</option><option>12</option></select></div>
   <div class="setting-row"><label for="mapChoice">Arena map</label><select id="mapChoice"><option value="training">Training Yard</option><option value="desert">Desert Base</option><option value="forest">Forest Camp</option></select></div>
@@ -81,8 +99,10 @@ canvas{display:block}
 </div>
 
 <div id="title">STRIKE ZONE</div>
+<button id="gameSettingsBtn" style="display:none;position:fixed;top:48px;right:12px;z-index:8;padding:8px 12px;font-size:13px">⚙ SETTINGS</button>
+<div id="rotateNotice">Please rotate your phone to landscape mode ↻</div>
 <div id="hud">
-<div>TEAM: <span style="color:#39d8ff">BLUE</span> vs <span style="color:#ff6666">RED</span> | ALLIES: <span id="allyCount">3</span></div>
+<div>TEAM: <span id="teamLabel" style="color:#39d8ff">BLUE</span> | ALLIES: <span id="allyCount">3</span></div>
 <div>SCORE: <span id="score">0</span></div>
 <div>WAVE: <span id="wave">1</span></div>
 <div>HEALTH</div>
@@ -205,6 +225,9 @@ let aimSensitivity=0.004;
 let selectedAllyCount=3;
 let selectedEnemyCount=4;
 let selectedMap='training';
+let playerTeam='blue',allyTeam='blue',enemyTeam='red';
+let audioCtx=null,musicNodes=null,musicEnabled=true,sfxEnabled=true;
+let airdropTimer=18,airdrop=null;
 
 
 function makeBot(team){
@@ -238,24 +261,24 @@ function makeBot(team){
   boot.position.set(side*.22,.08,.07);group.add(boot);
  }
  let x,z;
- if(team==='blue'){x=(Math.random()-.5)*7;z=4+Math.random()*5;}
+ if(team===allyTeam){x=(Math.random()-.5)*7;z=playerTeam==='blue'?4+Math.random()*5:-4-Math.random()*5;}
  else {do{x=(Math.random()-.5)*56;z=(Math.random()-.5)*56;}while(Math.hypot(x,z)<13);}
  group.position.set(x,0,z); scene.add(group);
  const bot={group,hp:3,speed:team==='blue'?1.65:1.2+wave*.12,team,cooldown:Math.random()*1.2};
- if(team==='blue')allies.push(bot); else enemies.push(bot);
+ if(team===allyTeam)allies.push(bot); else enemies.push(bot);
 }
 function makeEnemy(){makeBot('red');}
 function makeAlly(){makeBot('blue');}
 function removeBot(bot){
  scene.remove(bot.group);
- if(bot.team==='blue')allies=allies.filter(b=>b!==bot);
+ if(bot.team===allyTeam)allies=allies.filter(b=>b!==bot);
  else enemies=enemies.filter(b=>b!==bot);
 }
 function damageBot(bot,amount=1){
  bot.hp-=amount;
  if(bot.hp<=0){
   removeBot(bot);
-  if(bot.team==='red'){
+  if(bot.team===enemyTeam){
    score+=100; updateHUD();
    if(enemies.length===0){wave++;spawnWave();}
   }
@@ -267,8 +290,8 @@ function updateTeamHUD(){
  if(el)el.textContent=allies.length;
 }
 function spawnWave(){
-for(let i=0;i<selectedEnemyCount;i++)makeEnemy();
-if(allies.length===0){for(let i=0;i<selectedAllyCount;i++)makeAlly();}
+for(let i=0;i<selectedEnemyCount;i++)makeBot(enemyTeam);
+if(allies.length===0){for(let i=0;i<selectedAllyCount;i++)makeBot(allyTeam);}
 document.getElementById('wave').textContent=wave;
 updateTeamHUD();
 }
@@ -299,6 +322,7 @@ if(gameOver)return;
 const now=performance.now();
 if(now-lastShot<280)return;
 lastShot=now;
+playShotSound(false);
 
 const direction=new THREE.Vector3();
 camera.getWorldDirection(direction);
@@ -359,6 +383,43 @@ animateBullet();
 if(best && bestDistance<45)damageBot(best,1);
 }
 
+
+function initAudio(){
+ if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
+ if(audioCtx.state==='suspended')audioCtx.resume();
+}
+function tone(freq,duration=0.12,type='square',volume=0.035){
+ if(!sfxEnabled)return;initAudio();
+ const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+ osc.type=type;osc.frequency.setValueAtTime(freq,audioCtx.currentTime);
+ gain.gain.setValueAtTime(volume,audioCtx.currentTime);
+ gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+duration);
+ osc.connect(gain);gain.connect(audioCtx.destination);osc.start();osc.stop(audioCtx.currentTime+duration);
+}
+function playShotSound(isBot=false){tone(isBot?145:240,.10,'sawtooth',isBot?.018:.04);setTimeout(()=>tone(isBot?85:120,.08,'triangle',.018),35);}
+function startMusic(){
+ if(!musicEnabled||musicNodes)return;initAudio();
+ const gain=audioCtx.createGain();gain.gain.value=.018;gain.connect(audioCtx.destination);
+ const a=audioCtx.createOscillator(),b=audioCtx.createOscillator();
+ a.type='sine';b.type='triangle';a.frequency.value=55;b.frequency.value=82.4;
+ a.connect(gain);b.connect(gain);a.start();b.start();musicNodes={a,b,gain};
+}
+function stopMusic(){if(!musicNodes)return;try{musicNodes.a.stop();musicNodes.b.stop();musicNodes.gain.disconnect();}catch(e){}musicNodes=null;}
+function createAirdrop(){
+ if(airdrop)return;
+ const crate=new THREE.Group();
+ const box=new THREE.Mesh(new THREE.BoxGeometry(1.35,.9,1.15),new THREE.MeshStandardMaterial({color:0xc58b38,metalness:.25,roughness:.65}));crate.add(box);
+ const stripe=new THREE.Mesh(new THREE.BoxGeometry(1.4,.14,1.2),new THREE.MeshStandardMaterial({color:0x252b31}));stripe.position.y=.18;crate.add(stripe);
+ const beacon=new THREE.PointLight(0xffb84a,3,12);beacon.position.y=1.3;crate.add(beacon);
+ const x=(Math.random()-.5)*34,z=(Math.random()-.5)*34;crate.position.set(x,17,z);scene.add(crate);
+ airdrop={group:crate,x,z,landed:false};tone(520,.35,'sine',.03);
+}
+function updateAirdrop(dt){
+ if(!airdrop){airdropTimer-=dt;if(airdropTimer<=0){createAirdrop();airdropTimer=45;}return;}
+ if(!airdrop.landed){airdrop.group.position.y=Math.max(.55,airdrop.group.position.y-3.2*dt);if(airdrop.group.position.y<=.55){airdrop.landed=true;tone(180,.25,'triangle',.04);}}
+ const d=Math.hypot(camera.position.x-airdrop.x,camera.position.z-airdrop.z);
+ if(airdrop.landed&&d<2.2){health=Math.min(100,health+35);updateHUD();scene.remove(airdrop.group);airdrop=null;tone(720,.18,'sine',.04);}
+}
 
 function endGame(){
 gameOver=true;
@@ -426,34 +487,39 @@ renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
 
 
 addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('keydown',e=>{if(e.key==='Escape'&&gameStarted){stopMusic();gameStarted=false;document.getElementById('hud').style.display='none';document.getElementById('cross').style.display='none';document.getElementById('controls').style.display='none';document.getElementById('hint').style.display='none';document.getElementById('gameSettingsBtn').style.display='none';document.getElementById('setupPanel').style.display='flex';}});
 
 const mainMenu=document.getElementById('mainMenu');
 const settingsPanel=document.getElementById('settingsPanel');
 const onlinePanel=document.getElementById('onlinePanel');
 let gameStarted=false;
 
-document.getElementById('offlineBtn').addEventListener('click',()=>{
- gameStarted=true;
- mainMenu.style.display='none';
- document.getElementById('hud').style.display='block';
- document.getElementById('cross').style.display=document.getElementById('crossToggle').checked?'block':'none';
- document.getElementById('controls').style.display='block';
- document.getElementById('hint').style.display='block';
- spawnWave();
-});
-
-document.getElementById('onlineBtn').addEventListener('click',()=>{
- onlinePanel.style.display='flex';
+let selectedMode='offline';
+function showSetup(){mainMenu.style.display='none';onlinePanel.style.display='none';settingsPanel.style.display='none';document.getElementById('setupPanel').style.display='flex';document.getElementById('modeNote').textContent=selectedMode==='online'?'ONLINE PREVIEW · LOCAL BOTS ONLY · SERVER REQUIRED FOR FRIENDS':'OFFLINE PRACTICE MATCH';}
+document.getElementById('offlineBtn').addEventListener('click',()=>{selectedMode='offline';showSetup();});
+document.getElementById('onlineBtn').addEventListener('click',()=>{selectedMode='online';onlinePanel.style.display='flex';});
+document.getElementById('onlineContinue').addEventListener('click',showSetup);
+document.getElementById('setupBack').addEventListener('click',()=>{document.getElementById('setupPanel').style.display='none';mainMenu.style.display='flex';});
+document.getElementById('setupSettings').addEventListener('click',()=>{settingsPanel.style.display='flex';});
+document.getElementById('startMatch').addEventListener('click',()=>{
+ selectedMap=document.getElementById('setupMap').value;
+ document.getElementById('mapChoice').value=selectedMap;document.getElementById('mapChoice').dispatchEvent(new Event('change'));
+ playerTeam=document.getElementById('playerTeam').value;allyTeam=playerTeam;enemyTeam=playerTeam==='blue'?'red':'blue';
+ selectedAllyCount=Number(document.getElementById('setupAllies').value);selectedEnemyCount=Number(document.getElementById('setupEnemies').value);
+ const label=document.getElementById('teamLabel');label.textContent=playerTeam.toUpperCase();label.style.color=playerTeam==='blue'?'#39d8ff':'#ff6666';
+ gameStarted=true;document.getElementById('setupPanel').style.display='none';
+ document.getElementById('hud').style.display='block';document.getElementById('cross').style.display=document.getElementById('crossToggle').checked?'block':'none';
+ document.getElementById('controls').style.display='block';document.getElementById('hint').style.display='block';document.getElementById('gameSettingsBtn').style.display='block';
+ initAudio();startMusic();
+ if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{});
+ document.body.classList.add('game-active');spawnWave();
 });
 document.getElementById('onlineBack').addEventListener('click',()=>{
  onlinePanel.style.display='none';
 });
-document.getElementById('settingsBtn').addEventListener('click',()=>{
- settingsPanel.style.display='flex';
-});
-document.getElementById('settingsBack').addEventListener('click',()=>{
- settingsPanel.style.display='none';
-});
+document.getElementById('settingsBtn').addEventListener('click',()=>{settingsPanel.style.display='flex';});
+document.getElementById('gameSettingsBtn').addEventListener('click',()=>{settingsPanel.style.display='flex';});
+document.getElementById('settingsBack').addEventListener('click',()=>{settingsPanel.style.display='none';if(gameStarted)startMusic();});
 
 const sensitivityInput=document.getElementById('sensitivity');
 sensitivityInput.addEventListener('input',()=>{
@@ -468,13 +534,13 @@ document.getElementById('quality').addEventListener('change',e=>{
 document.getElementById('crossToggle').addEventListener('change',e=>{
  if(gameStarted) document.getElementById('cross').style.display=e.target.checked?'block':'none';
 });
-document.getElementById('friendlyFire').addEventListener('change',e=>{
- friendlyFire=e.target.checked;
-});
+document.getElementById('friendlyFire').addEventListener('change',e=>{friendlyFire=e.target.checked;});
+document.getElementById('musicToggle').addEventListener('change',e=>{musicEnabled=e.target.checked;if(musicEnabled&&gameStarted)startMusic();else stopMusic();});
+document.getElementById('sfxToggle').addEventListener('change',e=>{sfxEnabled=e.target.checked;});
 document.getElementById('allyAmount').addEventListener('change',e=>{selectedAllyCount=Number(e.target.value);});
 document.getElementById('enemyAmount').addEventListener('change',e=>{selectedEnemyCount=Number(e.target.value);});
 document.getElementById('mapChoice').addEventListener('change',e=>{
- selectedMap=e.target.value;
+ selectedMap=e.target.value;document.getElementById('setupMap').value=e.target.value;
  if(selectedMap==='desert'){
   scene.background.set(0xc6a477);scene.fog.color.set(0xc6a477);
   floor.material.color.set(0x9a8157);grid.material.color.set(0x9b8156);
@@ -494,6 +560,7 @@ requestAnimationFrame(animate);
 const dt=Math.min(clock.getDelta(),.05);
 
 if(!gameOver && gameStarted){
+updateAirdrop(dt);
 camera.rotation.set(pitch,yaw,0);
 
 const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
@@ -519,34 +586,41 @@ for(const ally of [...allies]){
  if(target){
   const dx=target.group.position.x-ally.group.position.x,dz=target.group.position.z-ally.group.position.z;
   ally.group.rotation.y=Math.atan2(dx,dz);
-  if(ally.cooldown<=0){makeTracer(ally.group.position.clone().add(new THREE.Vector3(0,1.2,0)),target.group.position.clone().add(new THREE.Vector3(0,1.1,0)),0x39d8ff);damageBot(target,1);ally.cooldown=1.15;}
+  if(ally.cooldown<=0){makeTracer(ally.group.position.clone().add(new THREE.Vector3(0,1.2,0)),target.group.position.clone().add(new THREE.Vector3(0,1.1,0)),0x39d8ff);playShotSound(true);damageBot(target,1);ally.cooldown=1.15;}
  }
 }
-// Red bots pursue the closest blue target.
+// Red bots pursue the closest opposing target and fire visible energy shots at range.
 for(const enemy of [...enemies]){
  let targetPlayer=true,tx=camera.position.x,tz=camera.position.z;
  let nearest=Math.hypot(tx-enemy.group.position.x,tz-enemy.group.position.z);
+ let nearestAlly=null;
  for(const ally of allies){
   const d=Math.hypot(ally.group.position.x-enemy.group.position.x,ally.group.position.z-enemy.group.position.z);
-  if(d<nearest){nearest=d;tx=ally.group.position.x;tz=ally.group.position.z;targetPlayer=false;}
+  if(d<nearest){nearest=d;tx=ally.group.position.x;tz=ally.group.position.z;targetPlayer=false;nearestAlly=ally;}
  }
  const dx=tx-enemy.group.position.x,dz=tz-enemy.group.position.z;
- if(nearest>1.5){
+ enemy.group.rotation.y=Math.atan2(dx,dz);
+ if(nearest>4){
   enemy.group.position.x+=dx/nearest*enemy.speed*dt;
   enemy.group.position.z+=dz/nearest*enemy.speed*dt;
-  enemy.group.rotation.y=Math.atan2(dx,dz);
- }else{
-  enemy.cooldown-=dt;
-  if(enemy.cooldown<=0){
-   if(targetPlayer){makeTracer(enemy.group.position.clone().add(new THREE.Vector3(0,1.2,0)),camera.position.clone(),0xff5544);health=Math.max(0,health-8);updateHUD();if(health<=0)endGame();}
-   else if(allies.length){
-    let nearestAlly=allies[0],d0=Infinity;
-    for(const a of allies){const d=Math.hypot(a.group.position.x-enemy.group.position.x,a.group.position.z-enemy.group.position.z);if(d<d0){d0=d;nearestAlly=a;}}
-    makeTracer(enemy.group.position.clone().add(new THREE.Vector3(0,1.2,0)),nearestAlly.group.position.clone().add(new THREE.Vector3(0,1.1,0)),0xff5544);
+ }
+ enemy.cooldown-=dt;
+ if(nearest<20 && enemy.cooldown<=0){
+  const from=enemy.group.position.clone().add(new THREE.Vector3(0,1.2,0));
+  const to=targetPlayer?camera.position.clone():nearestAlly.group.position.clone().add(new THREE.Vector3(0,1.1,0));
+  makeTracer(from,to,0xff5544);
+  playShotSound(true);
+  // Damage is applied only at closer range; the tracer remains visible at longer range.
+  if(nearest<10){
+   if(targetPlayer){
+    health=Math.max(0,health-4);
+    updateHUD();
+    if(health<=0)endGame();
+   }else if(nearestAlly){
     damageBot(nearestAlly,1);
    }
-   enemy.cooldown=1.0;
   }
+  enemy.cooldown=1.25;
  }
 }
 }
