@@ -46,6 +46,8 @@ canvas{display:block}
 .setting-row input[type=range]{width:48%;accent-color:#39d8ff}
 .setting-row select{background:#142b3a;color:white;border:1px solid #39d8ff;padding:8px;border-radius:7px}
 #hud,#cross,#controls,#hint{display:none}
+#sensor:disabled{opacity:.45}
+.operator-pick{padding:9px 2px;border:1px solid #567080;border-radius:8px;background:#172b39;color:#eaf8ff;font-size:11px;font-weight:bold}.operator-pick.active{border-color:#39d8ff;background:#07506a;box-shadow:0 0 10px #00cfff66}
 
 </style>
 </head>
@@ -55,10 +57,11 @@ canvas{display:block}
  <div class="menu-card">
   <div class="menu-logo">STRIKE ZONE</div>
   <div class="menu-sub">TACTICAL COMBAT</div>
+  <div id="careerStats" style="margin:14px 0 18px;padding:12px;border:1px solid #39d8ff55;border-radius:12px;background:#071722;color:#d8f5ff;text-align:left;font-size:13px;line-height:1.9"><b style="color:#39d8ff">CAREER RECORD</b><br>Best score: <b id="bestScore">0</b> &nbsp;|&nbsp; Best wave: <b id="bestWave">0</b><br>Total kills: <b id="totalKills">0</b></div>
   <button class="menu-btn" id="offlineBtn">OFFLINE</button>
   <button class="menu-btn" id="onlineBtn">ONLINE</button>
   <button class="menu-btn secondary" id="settingsBtn">SETTINGS</button>
-  <div class="menu-note">MOBILE EDITION · VERSION 5</div>
+  <div class="menu-note">MOBILE EDITION · MIRAGE UPDATE</div>
  </div>
 </div>
 <div id="onlinePanel" style="display:none">
@@ -73,10 +76,13 @@ canvas{display:block}
 <div id="setupPanel" style="display:none">
  <div class="menu-card">
   <div class="panel-title">MATCH SETUP</div><p id="modeNote" style="font-size:12px;color:#9db9c8">OFFLINE PRACTICE</p>
-  <div class="setting-row"><label for="setupMap">Choose map</label><select id="setupMap"><option value="training">Training Yard</option><option value="desert">Desert Base</option><option value="forest">Forest Camp</option></select></div>
+  <div class="setting-row"><label for="setupMap">Choose map</label><select id="setupMap"><option value="harbor">IRON HARBOR</option><option value="training">TRAINING RANGE (OFFLINE)</option></select></div>
   <div class="setting-row"><label for="playerTeam">Choose your team</label><select id="playerTeam"><option value="blue">BLUE TEAM</option><option value="red">RED TEAM</option></select></div>
-  <div class="setting-row"><label for="setupAllies">Your team bots</label><select id="setupAllies"><option>0</option><option>1</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option></select></div>
-  <div class="setting-row"><label for="setupEnemies">Opposing bots</label><select id="setupEnemies"><option>1</option><option>2</option><option selected>4</option><option>5</option><option>6</option><option>8</option><option>10</option><option>12</option></select></div>
+  <div class="setting-row"><label for="weaponChoice">Primary weapon</label><select id="weaponChoice"><option value="rifle">Viper Rifle · rapid control</option><option value="burst">Nova Burst · pulse burst</option><option value="heavy">Titan Cannon · heavy impact</option><option value="marksman">Falcon Marksman · long range</option></select></div>
+  <div class="setting-row"><label for="weaponSkin">Weapon finish</label><select id="weaponSkin"><option value="cyan">Arctic Neon</option><option value="gold">Solar Gold</option><option value="red">Crimson</option><option value="violet">Violet Pulse</option></select></div>
+  <div class="setting-row"><label for="setupAllies">Your team bots (max 19)</label><select id="setupAllies"><option >0</option><option >1</option><option >2</option><option selected>3</option><option >4</option><option >5</option><option >6</option><option >7</option><option >8</option><option >9</option><option >10</option><option >11</option><option >12</option><option >13</option><option >14</option><option >15</option><option >16</option><option >17</option><option >18</option><option >19</option></select></div>
+  <div class="setting-row"><label for="setupEnemies">Opposing bots (max 20)</label><select id="setupEnemies"><option >1</option><option >2</option><option >3</option><option selected>4</option><option >5</option><option >6</option><option >7</option><option >8</option><option >9</option><option >10</option><option >11</option><option >12</option><option >13</option><option >14</option><option >15</option><option >16</option><option >17</option><option >18</option><option >19</option><option >20</option></select></div>
+  <div style="margin:12px 0;text-align:left"><b style="color:#39d8ff">CHOOSE YOUR OPERATOR</b><div id="operatorGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px"></div><div id="operatorInfo" style="font-size:11px;color:#9db9c8;margin-top:7px">Select one of 20 operators for your team.</div></div>
   <button class="menu-btn" id="setupSettings">MATCH SETTINGS</button>
   <button class="menu-btn" id="startMatch">START MATCH</button>
   <button class="menu-btn secondary" id="setupBack">BACK</button>
@@ -93,8 +99,8 @@ canvas{display:block}
   <div class="setting-row"><label for="sfxToggle">Sound effects</label><input id="sfxToggle" type="checkbox" checked></div>
   <div class="setting-row"><label for="allyAmount">Blue team bots</label><select id="allyAmount"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></div>
   <div class="setting-row"><label for="enemyAmount">Red team bots</label><select id="enemyAmount"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>8</option><option>10</option><option>12</option></select></div>
-  <div class="setting-row"><label for="mapChoice">Arena map</label><select id="mapChoice"><option value="training">Training Yard</option><option value="desert">Desert Base</option><option value="forest">Forest Camp</option></select></div>
-  <button class="menu-btn secondary" id="settingsBack">BACK</button>
+  <div class="setting-row"><label for="mapChoice">Arena map</label><select id="mapChoice"><option value="harbor">IRON HARBOR</option><option value="training">TRAINING RANGE (OFFLINE)</option></select></div>
+  <button class="menu-btn secondary" id="settingsBack">BACK</button><button class="menu-btn secondary" id="exitGame">EXIT TO MAIN MENU</button>
  </div>
 </div>
 
@@ -102,16 +108,16 @@ canvas{display:block}
 <button id="gameSettingsBtn" style="display:none;position:fixed;top:48px;right:12px;z-index:8;padding:8px 12px;font-size:13px">⚙ SETTINGS</button>
 <div id="rotateNotice">Please rotate your phone to landscape mode ↻</div>
 <div id="hud">
-<div>TEAM: <span id="teamLabel" style="color:#39d8ff">BLUE</span> | ALLIES: <span id="allyCount">3</span></div>
-<div>SCORE: <span id="score">0</span></div>
-<div>WAVE: <span id="wave">1</span></div>
+<div>TEAM: <span id="teamLabel" style="color:#39d8ff">BLUE</span> · OP: <span id="operatorLabel">RAVEN</span> | ALLIES: <span id="allyCount">3</span></div>
+<div>SCORE: <span id="score">0</span> &nbsp; KILLS: <span id="killCount">0</span></div>
+<div>WAVE: <span id="wave">1</span></div><div>WEAPON: <span id="weaponLabel">VIPER RIFLE</span></div>
 <div>HEALTH</div>
 <div id="healthbar"><div id="health"></div></div>
 </div>
 <div id="cross">+</div>
 <div id="controls">
 <div id="stick"><div id="knob"></div></div>
-<button id="fire">FIRE</button>
+<button id="fire">FIRE</button><button id="sensor" style="position:absolute;right:28px;bottom:145px;width:76px;height:58px;border-radius:14px;border:2px solid #6ef0ff;background:#123d55;color:white;font-weight:900;pointer-events:auto">SCAN<br><small id="sensorTimer">READY</small></button>
 </div>
 <div id="hint">LEFT: MOVE · DRAG SCREEN: AIM · FIRE: SHOOT</div>
 <div id="restart">
@@ -158,32 +164,226 @@ const grid = new THREE.GridHelper(100,50,0x526d5b,0x687b65);
 grid.position.y=0.01;
 scene.add(grid);
 
-const wallMat = new THREE.MeshStandardMaterial({color:0x59636a});
-function wall(x,z,w,d){
-const m=new THREE.Mesh(new THREE.BoxGeometry(w,3,d),wallMat);
-m.position.set(x,1.5,z);
-m.castShadow=true;
-m.receiveShadow=true;
-scene.add(m);
-}
-wall(0,-32,66,1);
-wall(0,32,66,1);
-wall(-33,0,1,64);
-wall(33,0,1,64);
 
-const obstacleMat = new THREE.MeshStandardMaterial({color:0x68747c});
-for(let i=0;i<28;i++){
-const x=(Math.random()-.5)*54;
-const z=(Math.random()-.5)*54;
-if(Math.abs(x)<5 && Math.abs(z)<5)continue;
-const b=new THREE.Mesh(
-new THREE.BoxGeometry(2.5,1.3,2.5),obstacleMat
-);
-b.position.set(x,.65,z);
-b.castShadow=true;
-b.receiveShadow=true;
-scene.add(b);
+// Map geometry is kept separate so changing maps never stacks old buildings.
+const mapRoot = new THREE.Group();
+scene.add(mapRoot);
+const mapColliders = [];
+const wallMat = new THREE.MeshStandardMaterial({color:0xb99d78, roughness:.92});
+const darkWallMat = new THREE.MeshStandardMaterial({color:0x80694f, roughness:.95});
+const trimMat = new THREE.MeshStandardMaterial({color:0xe0c69b, roughness:.8});
+const floorMat = new THREE.MeshStandardMaterial({color:0xc6ad86, roughness:1});
+const woodMat = new THREE.MeshStandardMaterial({color:0x68472d, roughness:.9});
+const crateMat = new THREE.MeshStandardMaterial({color:0x8a6238, roughness:.9});
+
+function addMapBox(x,y,z,w,h,d,material,solid=true){
+ const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+ mesh.position.set(x,y,z);
+ mesh.castShadow=true; mesh.receiveShadow=true;
+ mapRoot.add(mesh);
+ if(solid) mapColliders.push({x,z,hw:w/2,hd:d/2});
+ return mesh;
 }
+function mapWall(x,z,w,d,h=4.2,material=wallMat){
+ return addMapBox(x,h/2,z,w,h,d,material,true);
+}
+function mapFloor(x,z,w,d,material=floorMat){
+ const m=new THREE.Mesh(new THREE.BoxGeometry(w,.18,d),material);
+ m.position.set(x,-.12,z);m.receiveShadow=true;mapRoot.add(m);
+ return m;
+}
+function clearMap(){
+ while(mapRoot.children.length){
+  const obj=mapRoot.children[mapRoot.children.length-1];
+  mapRoot.remove(obj);
+  if(obj.geometry)obj.geometry.dispose();
+  if(obj.material){
+   if(Array.isArray(obj.material))obj.material.forEach(m=>m.dispose());
+   else obj.material.dispose();
+  }
+ }
+ mapColliders.length=0;
+}
+function buildTrainingMap(){
+ clearMap();
+ const boundary=new THREE.MeshStandardMaterial({color:0x59636a});
+ mapWall(0,-32,66,1,3,boundary);mapWall(0,32,66,1,3,boundary);
+ mapWall(-33,0,1,64,3,boundary);mapWall(33,0,1,64,3,boundary);
+ const obstacleMat=new THREE.MeshStandardMaterial({color:0x68747c});
+ for(let i=0;i<28;i++){
+  const x=(Math.random()-.5)*54,z=(Math.random()-.5)*54;
+  if(Math.abs(x)<5&&Math.abs(z)<5)continue;
+  addMapBox(x,.65,z,2.5,1.3,2.5,obstacleMat,true);
+ }
+}
+function buildMirageMap(){
+ clearMap();
+ scene.background.set(0xb9b1a0);
+ scene.fog.color.set(0xb9b1a0);
+ scene.fog.near=42;scene.fog.far=105;
+ floor.material.color.set(0xbca47e);
+ grid.visible=false;
+
+ // Large sandstone perimeter with four broad street openings.
+ const perimeterMat=new THREE.MeshStandardMaterial({color:0x9b805f,roughness:1});
+ mapWall(0,-34,72,1.4,5,perimeterMat);
+ mapWall(0,34,72,1.4,5,perimeterMat);
+ mapWall(-36,0,1.4,68,5,perimeterMat);
+ mapWall(36,0,1.4,68,5,perimeterMat);
+
+ // Courtyard paving and central market square.
+ mapFloor(0,0,66,66);
+ const tileMat=new THREE.MeshStandardMaterial({color:0xd4bd98,roughness:1});
+ for(let x=-30;x<=30;x+=6){
+  for(let z=-30;z<=30;z+=6){
+   const tile=new THREE.Mesh(new THREE.BoxGeometry(5.85,.035,5.85),tileMat);
+   tile.position.set(x,-.015,z);mapRoot.add(tile);
+  }
+ }
+ // A fountain in the central open plaza.
+ const fountainStone=new THREE.MeshStandardMaterial({color:0x8e9b9b,roughness:.65});
+ addMapBox(0,.25,0,3.2,.5,3.2,fountainStone,false);
+ const water=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.4,.12,24),new THREE.MeshStandardMaterial({color:0x3d9da5,metalness:.25,roughness:.25}));
+ water.position.set(0,.56,0);mapRoot.add(water);
+ const fountainCore=new THREE.Mesh(new THREE.CylinderGeometry(.28,.38,1.2,12),trimMat);
+ fountainCore.position.set(0,1.05,0);mapRoot.add(fountainCore);
+
+ // A building shell with a real doorway; all rooms remain open to walk into.
+ function enterableBuilding(cx,cz,w,d,doorSide='south',doorWidth=3.2,height=5.6){
+  const t=.65,halfW=w/2,halfD=d/2;
+  mapFloor(cx,cz,w,d);
+  // Four sides split around a doorway.
+  if(doorSide==='south'){
+   mapWall(cx-halfW/2,cz+halfD,w/2-doorWidth/2,t,height);
+   mapWall(cx+halfW/2,cz+halfD,w/2-doorWidth/2,t,height);
+   addMapBox(cx,height-.55,cz+halfD,doorWidth,1.1,t,trimMat,false);
+  }else mapWall(cx,cz+halfD,w,t,height);
+  if(doorSide==='north'){
+   mapWall(cx-halfW/2,cz-halfD,w/2-doorWidth/2,t,height);
+   mapWall(cx+halfW/2,cz-halfD,w/2-doorWidth/2,t,height);
+   addMapBox(cx,height-.55,cz-halfD,doorWidth,1.1,t,trimMat,false);
+  }else mapWall(cx,cz-halfD,w,t,height);
+  if(doorSide==='east'){
+   mapWall(cx+halfW,cz-halfD/2,t,d/2-doorWidth/2,height);
+   mapWall(cx+halfW,cz+halfD/2,t,d/2-doorWidth/2,height);
+   addMapBox(cx+halfW,height-.55,cz, t,doorWidth,1.1,trimMat,false);
+  }else mapWall(cx+halfW,cz,t,d,height);
+  if(doorSide==='west'){
+   mapWall(cx-halfW,cz-halfD/2,t,d/2-doorWidth/2,height);
+   mapWall(cx-halfW,cz+halfD/2,t,d/2-doorWidth/2,height);
+   addMapBox(cx-halfW,height-.55,cz,t,doorWidth,1.1,trimMat,false);
+  }else mapWall(cx-halfW,cz,t,d,height);
+
+  // Flat roof rim and decorative parapet, leaving the interior playable.
+  addMapBox(cx, height+.12, cz, w+.3,.35,d+.3,perimeterMat,false);
+  // Door lintel and corner pillars.
+  const lintelY=height*.58+.35;
+  addMapBox(cx,lintelY,doorSide==='south'?cz+halfD:doorSide==='north'?cz-halfD:cz,
+            doorSide==='east'||doorSide==='west'?.8:doorWidth+.5,.45,
+            doorSide==='east'||doorSide==='west'?doorWidth+.5:.8,trimMat,false);
+  return {cx,cz,w,d};
+ }
+
+ // Four enterable sandstone buildings around the mid lanes.
+ enterableBuilding(-20,-19,15,13,'south',5.8); // A-side palace
+ enterableBuilding(20,19,15,13,'north',5.8);   // B-side apartments
+ enterableBuilding(-21,17,13,15,'east',5.2);   // market house
+ enterableBuilding(21,-17,13,15,'west',5.2);   // connector house
+
+ // Interior partitions create several rooms while preserving door-sized gaps.
+ mapWall(-20,-20, .55,7,3.4,darkWallMat);
+ mapWall(-22.5,-19,4.5,.55,3.4,darkWallMat);
+ mapWall(20,18, .55,7,3.4,darkWallMat);
+ mapWall(18,20,4.5,.55,3.4,darkWallMat);
+ mapWall(-21,17,6,.55,3.2,darkWallMat);
+ mapWall(21,-17,6,.55,3.2,darkWallMat);
+
+ // Low archways and covered connector alleys.
+ mapWall(-7,-13,1,13,4.3,perimeterMat);
+ mapWall(7,13,1,13,4.3,perimeterMat);
+ addMapBox(-7,4.15,-13,2.2,.35,13,trimMat,false);
+ addMapBox(7,4.15,13,2.2,.35,13,trimMat,false);
+
+ // Market stalls, crates, barrels, planters and rooftop details.
+ for(let i=0;i<5;i++){
+  const x=-5+i*2.5;
+  addMapBox(x,1.05,-4,1.8,2.1,1.1,woodMat,true);
+  addMapBox(x,2.18,-4,2,.16,1.25,trimMat,false);
+ }
+ for(const [x,z] of [[-29,0],[29,0],[0,-28],[0,28],[-11,8],[12,-8]]){
+  const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.48,.52,1.1,12),new THREE.MeshStandardMaterial({color:0x7d5536,roughness:.85}));
+  barrel.position.set(x,.55,z);barrel.castShadow=true;mapRoot.add(barrel);
+  mapColliders.push({x,z,hw:.5,hd:.5});
+ }
+ for(const [x,z] of [[-12,-27],[12,27],[-29,18],[29,-18]]){
+  addMapBox(x,.55,z,2,1.1,2,crateMat,true);
+ }
+ // Street lamps.
+ for(const [x,z] of [[-10,0],[10,0],[0,-10],[0,10]]){
+  const pole=new THREE.Mesh(new THREE.CylinderGeometry(.09,.12,4,8),darkWallMat);
+  pole.position.set(x,2,z);mapRoot.add(pole);
+  const lamp=new THREE.PointLight(0xffd59a,.45,9);lamp.position.set(x,4.1,z);mapRoot.add(lamp);
+ }
+ // Spawn courtyards and broad lanes remain clear for the teams.
+}
+
+function buildHarborMap(){
+ clearMap();grid.visible=false;scene.background.set(0x8497a2);scene.fog.color.set(0x8497a2);scene.fog.near=38;scene.fog.far=110;floor.material.color.set(0x39474d);
+ const concrete=new THREE.MeshStandardMaterial({color:0x66757a,roughness:.95});
+ const steel=new THREE.MeshStandardMaterial({color:0x34434b,metalness:.55,roughness:.55});
+ const yellow=new THREE.MeshStandardMaterial({color:0xd1a52c,roughness:.7});
+ const glass=new THREE.MeshStandardMaterial({color:0x4b8794,metalness:.35,roughness:.2});
+ // Original industrial container port: lanes, loading sheds, container stacks and control rooms.
+ mapWall(0,-34,72,1.4,5,steel);mapWall(0,34,72,1.4,5,steel);mapWall(-36,0,1.4,68,5,steel);mapWall(36,0,1.4,68,5,steel);
+ mapFloor(0,0,68,68);
+ // Main warehouse shells with open loading entrances.
+ mapWall(-22,-17,22,.8,6,concrete);mapWall(-33,-7,.8,20,6,concrete);mapWall(-11,-7,.8,20,6,concrete);mapWall(-22,3,22,.8,6,concrete);
+ mapWall(22,17,22,.8,6,concrete);mapWall(11,7,.8,20,6,concrete);mapWall(33,7,.8,20,6,concrete);mapWall(22,-3,22,.8,6,concrete);
+ // Container stacks make cover lanes; yellow corner markings add scale cues.
+ for(const [x,z,c] of [[-13,-25,0x315c70],[-5,-25,0x8b4d36],[13,25,0x315c70],[5,25,0x8b4d36],[-28,14,0x536d45],[28,-14,0x536d45]]){
+  addMapBox(x,1.35,z,7,2.7,3.1,new THREE.MeshStandardMaterial({color:c,metalness:.35,roughness:.75}),true);
+  addMapBox(x,2.75,z,7,.12,3.2,yellow,false);
+ }
+ // Control kiosks, cargo pallets, barriers and light poles.
+ for(const [x,z] of [[-5,-10],[5,10],[-28,-20],[28,20]]){
+  addMapBox(x,1.4,z,5,2.8,4,steel,true);addMapBox(x,2.9,z,3,.12,2.8,glass,false);
+ }
+ for(const [x,z] of [[-8,18],[8,-18],[-29,0],[29,0],[0,-29],[0,29]]){
+  addMapBox(x,.65,z,3,1.3,1.2,concrete,true);
+  mapColliders.push({x,z,hw:1.5,hd:.6});
+ }
+ for(const [x,z] of [[-17,9],[17,-9],[-2,24],[2,-24]]){
+  const pole=new THREE.Mesh(new THREE.CylinderGeometry(.1,.15,5,8),steel);pole.position.set(x,2.5,z);mapRoot.add(pole);
+  const lamp=new THREE.PointLight(0xffd58a,.65,13);lamp.position.set(x,5,z);mapRoot.add(lamp);
+ }
+ // painted dock lane strips
+ for(let z=-27;z<=27;z+=9){addMapBox(0,.015,z,1.2,.025,5,yellow,false);}
+}
+function buildTrainingRange(){
+ clearMap();grid.visible=true;scene.background.set(0x647a86);scene.fog.color.set(0x647a86);scene.fog.near=40;scene.fog.far=100;floor.material.color.set(0x46534e);
+ const mat=new THREE.MeshStandardMaterial({color:0x69777a,roughness:.9});
+ mapWall(0,-32,66,1,3,mat);mapWall(0,32,66,1,3,mat);mapWall(-33,0,1,64,3,mat);mapWall(33,0,1,64,3,mat);
+ for(let i=0;i<12;i++){const x=-24+(i%4)*16,z=-18+Math.floor(i/4)*18;addMapBox(x,.8,z,2.5,1.6,2.5,mat,true);}
+ // target boards for a calm offline practice area
+ const boardMat=new THREE.MeshStandardMaterial({color:0x26343a});
+ for(let x=-20;x<=20;x+=10){addMapBox(x,1.5,-27,2.2,3,.35,boardMat,false);}
+}
+
+function circleHitsBox(x,z,r,b){
+ const cx=Math.max(b.x-b.hw,Math.min(x,b.x+b.hw));
+ const cz=Math.max(b.z-b.hd,Math.min(z,b.z+b.hd));
+ return (x-cx)*(x-cx)+(z-cz)*(z-cz)<r*r;
+}
+function blockedAt(x,z,r=.38){
+ return mapColliders.some(b=>circleHitsBox(x,z,r,b));
+}
+function movePlayer(dx,dz){
+ const nx=Math.max(-34,Math.min(34,camera.position.x+dx));
+ const nz=Math.max(-33,Math.min(33,camera.position.z+dz));
+ if(!blockedAt(nx,camera.position.z))camera.position.x=nx;
+ if(!blockedAt(camera.position.x,nz))camera.position.z=nz;
+}
+buildHarborMap();
 
 camera.position.set(0,1.7,0);
 
@@ -224,7 +424,11 @@ let dragging=false,lastX=0,lastY=0;
 let aimSensitivity=0.004;
 let selectedAllyCount=3;
 let selectedEnemyCount=4;
-let selectedMap='training';
+let selectedMap='harbor';
+let selectedWeapon='rifle',selectedSkin='cyan',selectedOperator=0,killCount=0,sensorReady=true,sensorCooldown=0,recordsSaved=false;
+const weaponProfiles={rifle:{name:'Viper Rifle',cooldown:280,damage:1,range:45,color:0x39d8ff,special:'Balanced control'},burst:{name:'Nova Burst',cooldown:520,damage:1,range:42,color:0xffd166,special:'Three quick energy pulses'},heavy:{name:'Titan Cannon',cooldown:720,damage:2,range:40,color:0xff704d,special:'Heavy impact'},marksman:{name:'Falcon Marksman',cooldown:620,damage:2,range:65,color:0xc69bff,special:'Long-range precision'}};
+const operatorNames=['RAVEN','NOVA','VOLT','ATLAS','ECHO','BLAZE','FROST','ONYX','PHANTOM','ORBIT','TITAN','LYNX','EMBER','COBALT','VIPER','SOLAR','GHOST','STORM','ACE','PULSE'];
+const skinColors={cyan:0x39d8ff,gold:0xffc84a,red:0xff5555,violet:0xb58aff};
 let playerTeam='blue',allyTeam='blue',enemyTeam='red';
 let audioCtx=null,musicNodes=null,musicEnabled=true,sfxEnabled=true;
 let airdropTimer=18,airdrop=null;
@@ -250,6 +454,9 @@ function makeBot(team){
  head.position.y=1.78; head.castShadow=true; group.add(head);
  const helmet=new THREE.Mesh(new THREE.SphereGeometry(.32,14,8,0,Math.PI*2,0,Math.PI/2),dark);
  helmet.position.y=1.88; helmet.castShadow=true; group.add(helmet);
+ const visor=new THREE.Mesh(new THREE.BoxGeometry(.43,.12,.08),new THREE.MeshStandardMaterial({color:team==='blue'?0x7cecff:0xff8b8b,emissive:team==='blue'?0x0a8fb8:0x9b2020,emissiveIntensity:.65,metalness:.4,roughness:.25}));visor.position.set(0,1.79,.27);group.add(visor);
+ const pack=new THREE.Mesh(new THREE.BoxGeometry(.48,.62,.25),dark);pack.position.set(0,1.15,-.34);pack.castShadow=true;group.add(pack);
+ for(const side of [-1,1]){const pad=new THREE.Mesh(new THREE.BoxGeometry(.32,.22,.42),dark);pad.position.set(side*.48,1.48,0);pad.castShadow=true;group.add(pad);}
  const eyeMat=new THREE.MeshBasicMaterial({color:team==='blue'?0x8be7ff:0xff7777});
  for(const x of [-.11,.11]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.035,8,8),eyeMat);eye.position.set(x,1.78,.265);group.add(eye);}
  for(const side of [-1,1]){
@@ -261,7 +468,16 @@ function makeBot(team){
   boot.position.set(side*.22,.08,.07);group.add(boot);
  }
  let x,z;
- if(team===allyTeam){x=(Math.random()-.5)*7;z=playerTeam==='blue'?4+Math.random()*5:-4-Math.random()*5;}
+ if(selectedMap==='mirage'){
+  if(team===allyTeam){
+   x=(Math.random()-.5)*5;
+   z=playerTeam==='blue'?25+Math.random()*3:-25-Math.random()*3;
+  }else{
+   const spawns=[[-29,-27],[29,27],[-29,27],[29,-27],[0,-29],[0,29]];
+   const p=spawns[Math.floor(Math.random()*spawns.length)];
+   x=p[0]+(Math.random()-.5)*3;z=p[1]+(Math.random()-.5)*3;
+  }
+ }else if(team===allyTeam){x=(Math.random()-.5)*7;z=playerTeam==='blue'?4+Math.random()*5:-4-Math.random()*5;}
  else {do{x=(Math.random()-.5)*56;z=(Math.random()-.5)*56;}while(Math.hypot(x,z)<13);}
  group.position.set(x,0,z); scene.add(group);
  const bot={group,hp:3,speed:team==='blue'?1.65:1.2+wave*.12,team,cooldown:Math.random()*1.2};
@@ -279,7 +495,7 @@ function damageBot(bot,amount=1){
  if(bot.hp<=0){
   removeBot(bot);
   if(bot.team===enemyTeam){
-   score+=100; updateHUD();
+   score+=100;killCount++; updateHUD();
    if(enemies.length===0){wave++;spawnWave();}
   }
   updateTeamHUD();
@@ -297,6 +513,7 @@ updateTeamHUD();
 }
 function updateHUD(){
 document.getElementById('score').textContent=score;
+document.getElementById('killCount').textContent=killCount;
 document.getElementById('health').style.width=health+'%';
 }
 
@@ -317,70 +534,33 @@ function makeTracer(from,to,color=0xff5544){
 }
 
 function shoot(){
-if(gameOver)return;
-
-const now=performance.now();
-if(now-lastShot<280)return;
-lastShot=now;
-playShotSound(false);
-
-const direction=new THREE.Vector3();
-camera.getWorldDirection(direction);
-
-const start=camera.position.clone()
-.add(direction.clone().multiplyScalar(0.8))
-.add(new THREE.Vector3(0,-0.12,0));
-
-const bullet=new THREE.Mesh(
-new THREE.SphereGeometry(0.09,10,10),
-new THREE.MeshBasicMaterial({
-color:0x00eaff
-})
-);
-
-bullet.position.copy(start);
-scene.add(bullet);
-
-const ray=new THREE.Raycaster();
-ray.set(camera.position,direction);
-
-let best=null;
-let bestDistance=Infinity;
-const possibleTargets=friendlyFire?[...enemies,...allies]:enemies;
-for(const bot of possibleTargets){
- const hits=ray.intersectObjects(bot.group.children,false);
- if(hits.length && hits[0].distance<bestDistance){best=bot;bestDistance=hits[0].distance;}
+ if(gameOver)return;
+ const profile=weaponProfiles[selectedWeapon]||weaponProfiles.rifle;
+ const now=performance.now();if(now-lastShot<profile.cooldown)return;lastShot=now;
+ playShotSound(false);
+ const direction=new THREE.Vector3();camera.getWorldDirection(direction);
+ const start=camera.position.clone().add(direction.clone().multiplyScalar(.8)).add(new THREE.Vector3(0,-.12,0));
+ const ray=new THREE.Raycaster();ray.set(camera.position,direction);
+ let best=null,bestDistance=Infinity;
+ const possibleTargets=friendlyFire?[...enemies,...allies]:enemies;
+ for(const bot of possibleTargets){const hits=ray.intersectObjects(bot.group.children,false);if(hits.length&&hits[0].distance<bestDistance){best=bot;bestDistance=hits[0].distance;}}
+ const hit=best&&bestDistance<profile.range;
+ const targetDistance=hit?bestDistance:profile.range;
+ const target=start.clone().add(direction.clone().multiplyScalar(targetDistance));
+ const bullet=new THREE.Mesh(new THREE.SphereGeometry(selectedWeapon==='heavy'?.13:.085,10,10),new THREE.MeshBasicMaterial({color:profile.color}));bullet.position.copy(start);scene.add(bullet);
+ const began=performance.now();function fly(){if(!bullet.parent)return;const t=Math.min((performance.now()-began)/170,1);bullet.position.lerpVectors(start,target,t);if(t<1)requestAnimationFrame(fly);else{scene.remove(bullet);bullet.geometry.dispose();bullet.material.dispose();}}fly();
+ if(hit){damageBot(best,profile.damage);}
+ if(selectedWeapon==='burst'){
+  // Three visible pulse rings give the burst rifle its distinct special effect.
+  for(let i=0;i<3;i++){const ring=new THREE.Mesh(new THREE.TorusGeometry(.16+i*.09,.025,6,18),new THREE.MeshBasicMaterial({color:profile.color,transparent:true,opacity:.8}));ring.position.copy(start.clone().add(direction.clone().multiplyScalar(1.1+i*.18)));ring.quaternion.copy(camera.quaternion);scene.add(ring);setTimeout(()=>{scene.remove(ring);ring.geometry.dispose();ring.material.dispose();},240+i*35);}
+ }
 }
-let targetDistance=best && bestDistance<45?bestDistance:35;
-
-const target=start.clone().add(
-direction.clone().multiplyScalar(targetDistance)
-);
-
-const travelTime=180;
-const startTime=performance.now();
-
-function animateBullet(){
-if(!bullet.parent)return;
-
-const progress=Math.min(
-(performance.now()-startTime)/travelTime,1
-);
-
-bullet.position.lerpVectors(start,target,progress);
-
-if(progress<1){
-requestAnimationFrame(animateBullet);
-}else{
-scene.remove(bullet);
-bullet.geometry.dispose();
-bullet.material.dispose();
-}
-}
-
-animateBullet();
-
-if(best && bestDistance<45)damageBot(best,1);
+function activateSensor(){
+ if(!gameStarted||!sensorReady)return;sensorReady=false;sensorCooldown=12;
+ const pulse=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),new THREE.MeshBasicMaterial({color:0x35eaff,wireframe:true,transparent:true,opacity:.35}));pulse.position.copy(camera.position);scene.add(pulse);
+ const started=performance.now();function expand(){if(!pulse.parent)return;const t=Math.min((performance.now()-started)/900,1);pulse.scale.setScalar(1+t*24);pulse.material.opacity=.35*(1-t);if(t<1)requestAnimationFrame(expand);else{scene.remove(pulse);pulse.geometry.dispose();pulse.material.dispose();}}expand();
+ for(const bot of enemies){bot.sensorUntil=performance.now()+4000;bot.group.traverse(o=>{if(o.isMesh&&o.material){o.userData.oldEmissive=o.material.emissive?.getHex?.()??0;if(o.material.emissive)o.material.emissive.set(0x00eaff);}});const marker=new THREE.Group();const halo=new THREE.Mesh(new THREE.TorusGeometry(.48,.055,6,20),new THREE.MeshBasicMaterial({color:0x00eaff}));halo.rotation.x=Math.PI/2;halo.position.y=2.55;marker.add(halo);const beacon=new THREE.Mesh(new THREE.SphereGeometry(.12,8,8),new THREE.MeshBasicMaterial({color:0x9ff8ff}));beacon.position.y=3.15;marker.add(beacon);bot.group.add(marker);setTimeout(()=>{if(bot.group.parent){bot.group.remove(marker);bot.group.traverse(o=>{if(o.isMesh&&o.material&&o.material.emissive)o.material.emissive.setHex(o.userData.oldEmissive||0);});}},4000);}
+ document.getElementById('sensorTimer').textContent='12s';
 }
 
 
@@ -422,7 +602,7 @@ function updateAirdrop(dt){
 }
 
 function endGame(){
-gameOver=true;
+gameOver=true;saveRecords();
 document.getElementById('finalscore').textContent=score;
 document.getElementById('restart').style.display='flex';
 }
@@ -495,7 +675,14 @@ const onlinePanel=document.getElementById('onlinePanel');
 let gameStarted=false;
 
 let selectedMode='offline';
-function showSetup(){mainMenu.style.display='none';onlinePanel.style.display='none';settingsPanel.style.display='none';document.getElementById('setupPanel').style.display='flex';document.getElementById('modeNote').textContent=selectedMode==='online'?'ONLINE PREVIEW · LOCAL BOTS ONLY · SERVER REQUIRED FOR FRIENDS':'OFFLINE PRACTICE MATCH';}
+function showSetup(){mainMenu.style.display='none';onlinePanel.style.display='none';settingsPanel.style.display='none';document.getElementById('setupPanel').style.display='flex';document.getElementById('modeNote').textContent=selectedMode==='online'?'ONLINE PREVIEW · LOCAL BOTS ONLY · SERVER REQUIRED FOR FRIENDS':'OFFLINE PRACTICE MATCH';const tr=document.querySelector('#setupMap option[value="training"]');if(tr)tr.disabled=selectedMode==='online';if(selectedMode==='online'&&document.getElementById('setupMap').value==='training')document.getElementById('setupMap').value='harbor';}
+function loadRecords(){const r=JSON.parse(localStorage.getItem('strikeZoneRecords')||'{"bestScore":0,"bestWave":0,"totalKills":0}');document.getElementById('bestScore').textContent=r.bestScore||0;document.getElementById('bestWave').textContent=r.bestWave||0;document.getElementById('totalKills').textContent=r.totalKills||0;}
+function saveRecords(){if(recordsSaved)return;recordsSaved=true;const r=JSON.parse(localStorage.getItem('strikeZoneRecords')||'{"bestScore":0,"bestWave":0,"totalKills":0}');r.bestScore=Math.max(r.bestScore||0,score);r.bestWave=Math.max(r.bestWave||0,wave);r.totalKills=(r.totalKills||0)+killCount;localStorage.setItem('strikeZoneRecords',JSON.stringify(r));loadRecords();}
+function renderOperators(){const grid=document.getElementById('operatorGrid');if(!grid)return;grid.innerHTML='';operatorNames.forEach((name,i)=>{const b=document.createElement('button');b.className='operator-pick'+(i===selectedOperator?' active':'');b.textContent=String(i+1).padStart(2,'0')+' '+name;b.addEventListener('click',()=>{selectedOperator=i;renderOperators();document.getElementById('operatorInfo').textContent=name+' selected · '+(document.getElementById('playerTeam').value==='blue'?'BLUE':'RED')+' operator';});grid.appendChild(b);});}
+loadRecords();renderOperators();
+document.getElementById('playerTeam').addEventListener('change',renderOperators);
+document.getElementById('sensor').addEventListener('pointerdown',e=>{e.preventDefault();activateSensor();});
+
 document.getElementById('offlineBtn').addEventListener('click',()=>{selectedMode='offline';showSetup();});
 document.getElementById('onlineBtn').addEventListener('click',()=>{selectedMode='online';onlinePanel.style.display='flex';});
 document.getElementById('onlineContinue').addEventListener('click',showSetup);
@@ -503,9 +690,15 @@ document.getElementById('setupBack').addEventListener('click',()=>{document.getE
 document.getElementById('setupSettings').addEventListener('click',()=>{settingsPanel.style.display='flex';});
 document.getElementById('startMatch').addEventListener('click',()=>{
  selectedMap=document.getElementById('setupMap').value;
+ selectedWeapon=document.getElementById('weaponChoice').value;selectedSkin=document.getElementById('weaponSkin').value;
+ playerWeapon.traverse(o=>{if(o.isMesh&&o.material&&o.material.emissive)o.material.emissive.setHex(skinColors[selectedSkin]||0x39d8ff);});
+ playerWeapon.traverse(o=>{if(o.isMesh&&o.material&&o.material.color&&o.material.emissive)o.material.color.setHex(skinColors[selectedSkin]||0x39d8ff);});
+ killCount=0;score=0;wave=1;health=100;gameOver=false;recordsSaved=false;updateHUD();document.getElementById('weaponLabel').textContent=(weaponProfiles[selectedWeapon]?.name||'VIPER RIFLE').toUpperCase();sensorReady=true;sensorCooldown=0;document.getElementById('sensorTimer').textContent='READY';
  document.getElementById('mapChoice').value=selectedMap;document.getElementById('mapChoice').dispatchEvent(new Event('change'));
  playerTeam=document.getElementById('playerTeam').value;allyTeam=playerTeam;enemyTeam=playerTeam==='blue'?'red':'blue';
  selectedAllyCount=Number(document.getElementById('setupAllies').value);selectedEnemyCount=Number(document.getElementById('setupEnemies').value);
+ if(selectedMap==='harbor'){camera.position.set(0,1.7,playerTeam==='blue'?27:-27);yaw=playerTeam==='blue'?Math.PI:0;pitch=0;}else{camera.position.set(0,1.7,playerTeam==='blue'?24:-24);yaw=playerTeam==='blue'?Math.PI:0;pitch=0;}
+ document.getElementById('operatorLabel').textContent=operatorNames[selectedOperator];
  const label=document.getElementById('teamLabel');label.textContent=playerTeam.toUpperCase();label.style.color=playerTeam==='blue'?'#39d8ff':'#ff6666';
  gameStarted=true;document.getElementById('setupPanel').style.display='none';
  document.getElementById('hud').style.display='block';document.getElementById('cross').style.display=document.getElementById('crossToggle').checked?'block':'none';
@@ -520,6 +713,7 @@ document.getElementById('onlineBack').addEventListener('click',()=>{
 document.getElementById('settingsBtn').addEventListener('click',()=>{settingsPanel.style.display='flex';});
 document.getElementById('gameSettingsBtn').addEventListener('click',()=>{settingsPanel.style.display='flex';});
 document.getElementById('settingsBack').addEventListener('click',()=>{settingsPanel.style.display='none';if(gameStarted)startMusic();});
+document.getElementById('exitGame').addEventListener('click',()=>{if(gameStarted)saveRecords();stopMusic();gameStarted=false;gameOver=false;settingsPanel.style.display='none';document.getElementById('hud').style.display='none';document.getElementById('cross').style.display='none';document.getElementById('controls').style.display='none';document.getElementById('hint').style.display='none';document.getElementById('gameSettingsBtn').style.display='none';document.getElementById('setupPanel').style.display='none';document.getElementById('restart').style.display='none';mainMenu.style.display='flex';loadRecords();});
 
 const sensitivityInput=document.getElementById('sensitivity');
 sensitivityInput.addEventListener('input',()=>{
@@ -540,17 +734,8 @@ document.getElementById('sfxToggle').addEventListener('change',e=>{sfxEnabled=e.
 document.getElementById('allyAmount').addEventListener('change',e=>{selectedAllyCount=Number(e.target.value);});
 document.getElementById('enemyAmount').addEventListener('change',e=>{selectedEnemyCount=Number(e.target.value);});
 document.getElementById('mapChoice').addEventListener('change',e=>{
- selectedMap=e.target.value;document.getElementById('setupMap').value=e.target.value;
- if(selectedMap==='desert'){
-  scene.background.set(0xc6a477);scene.fog.color.set(0xc6a477);
-  floor.material.color.set(0x9a8157);grid.material.color.set(0x9b8156);
- }else if(selectedMap==='forest'){
-  scene.background.set(0x506b58);scene.fog.color.set(0x506b58);
-  floor.material.color.set(0x344b35);grid.material.color.set(0x526b48);
- }else{
-  scene.background.set(0x8799a5);scene.fog.color.set(0x8799a5);
-  floor.material.color.set(0x53634e);grid.material.color.set(0x526d5b);
- }
+ selectedMap=e.target.value;document.getElementById('setupMap').value=selectedMap;
+ if(selectedMap==='training')buildTrainingRange();else buildHarborMap();
 });
 
 
@@ -560,17 +745,17 @@ requestAnimationFrame(animate);
 const dt=Math.min(clock.getDelta(),.05);
 
 if(!gameOver && gameStarted){
-updateAirdrop(dt);
+ if(!sensorReady){sensorCooldown=Math.max(0,sensorCooldown-dt);document.getElementById('sensorTimer').textContent=Math.ceil(sensorCooldown)+'s';if(sensorCooldown<=0){sensorReady=true;document.getElementById('sensorTimer').textContent='READY';}}
+ updateAirdrop(dt);
 camera.rotation.set(pitch,yaw,0);
 
 const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
 const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
 
-camera.position.addScaledVector(forward,-moveY*5*dt);
-camera.position.addScaledVector(right,moveX*5*dt);
-
-camera.position.x=Math.max(-30,Math.min(30,camera.position.x));
-camera.position.z=Math.max(-29,Math.min(29,camera.position.z));
+const stepForward=-moveY*5*dt;
+const stepSide=moveX*5*dt;
+movePlayer(forward.x*stepForward+right.x*stepSide,
+           forward.z*stepForward+right.z*stepSide);
 
 // Blue allies follow the player and engage nearby red bots.
 for(const ally of [...allies]){
